@@ -1,0 +1,113 @@
+local KeySystemUI = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local Title = Instance.new("TextLabel")
+local TitleCorner = Instance.new("UICorner")
+local KeyInput = Instance.new("TextBox")
+local InputCorner = Instance.new("UICorner")
+local SubmitBtn = Instance.new("TextButton")
+local BtnCorner = Instance.new("UICorner")
+
+KeySystemUI.Name = "KhoiXHubKeySystem"
+KeySystemUI.Parent = (gethui and gethui()) or game:GetService("CoreGui") or game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui")
+KeySystemUI.ResetOnSpawn = false
+
+MainFrame.Name = "MainFrame"
+MainFrame.Parent = KeySystemUI
+MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -75)
+MainFrame.Size = UDim2.new(0, 300, 0, 160)
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+Title.Parent = MainFrame
+Title.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
+Title.Size = UDim2.new(1, 0, 0, 35)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "KhoiXHub | Key System"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16.000
+
+TitleCorner.CornerRadius = UDim.new(0, 8)
+TitleCorner.Parent = Title
+
+KeyInput.Parent = MainFrame
+KeyInput.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+KeyInput.Position = UDim2.new(0.1, 0, 0.38, 0)
+KeyInput.Size = UDim2.new(0.8, 0, 0, 32)
+KeyInput.Font = Enum.Font.SourceSans
+KeyInput.PlaceholderText = "Nhập Key vào đây..."
+KeyInput.PlaceholderColor3 = Color3.fromRGB(150, 150, 150)
+KeyInput.Text = ""
+KeyInput.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyInput.TextSize = 14.000
+
+InputCorner.CornerRadius = UDim.new(0, 6)
+InputCorner.Parent = KeyInput
+
+SubmitBtn.Parent = MainFrame
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
+SubmitBtn.Position = UDim2.new(0.2, 0, 0.72, 0)
+SubmitBtn.Size = UDim2.new(0.6, 0, 0, 32)
+SubmitBtn.Font = Enum.Font.SourceSansBold
+SubmitBtn.Text = "KÍCH HOẠT"
+SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitBtn.TextSize = 14.000
+
+BtnCorner.CornerRadius = UDim.new(0, 6)
+BtnCorner.Parent = SubmitBtn
+
+local CorrectKey = "khoi"
+local isVerifying = false
+
+local function LoadMainScript()
+    local SG = game:GetService("StarterGui")
+    local function notify(t, m, d)
+        pcall(function()
+            SG:SetCore("SendNotification", {Title = t, Text = m, Duration = d or 3})
+        end)
+    end
+
+    notify("KhoiXHub", "Đang tải Muscle Legends Script...", 3)
+    
+    local ok, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/tejaz0521/SCP-HUB/refs/heads/main/SCP_PUBLIC_V5.lua%20(23).txt", true))()
+    end)
+    
+    if ok then
+        notify("KhoiXHub", "Kích hoạt thành công!", 3)
+    else
+        notify("KhoiXHub", "Lỗi nạp script: " .. tostring(err):sub(1, 40), 5)
+    end
+end
+
+local function VerifyKey()
+    if isVerifying then return end
+    isVerifying = true
+    
+    if KeyInput.Text == CorrectKey then
+        SubmitBtn.Text = "ĐÚNG KEY!"
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+        task.wait(0.5)
+        KeySystemUI:Destroy()
+        LoadMainScript()
+    else
+        SubmitBtn.Text = "SAI KEY!"
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(220, 0, 0)
+        task.wait(1.2)
+        SubmitBtn.Text = "KÍCH HOẠT"
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(180, 20, 20)
+        isVerifying = false
+    end
+end
+
+SubmitBtn.MouseButton1Click:Connect(VerifyKey)
+KeyInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        VerifyKey()
+    end
+end)
