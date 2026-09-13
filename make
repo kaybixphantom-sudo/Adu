@@ -1,0 +1,282 @@
+local KeySystem = "KhoiReal"
+
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+if CoreGui:FindFirstChild("KhoiFarmKeyUI") then
+    CoreGui.KhoiFarmKeyUI:Destroy()
+end
+if CoreGui:FindFirstChild("KhoiFarmMainUI") then
+    CoreGui.KhoiFarmMainUI:Destroy()
+end
+
+local function CreateMainUI()
+    local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+    local Window = Library.CreateLib("KhoiFarm", "BloodRed")
+
+    local MainTab = Window:NewTab("Main")
+    local KillingTab = Window:NewTab("Killing")
+    local SpecsTab = Window:NewTab("Specs")
+    local FarmingTab = Window:NewTab("Farming")
+    local InventoryTab = Window:NewTab("Inventory")
+    local TeleportsTab = Window:NewTab("Teleports")
+    local StatsTab = Window:NewTab("Stats")
+
+    local MainSection = MainTab:NewSection("User Settings")
+    MainSection:NewSlider("Size", "Chỉnh kích thước nhân vật", 500, 1, function(s) print("Size set to: " .. s) end)
+    MainSection:NewSlider("Speed", "Chỉnh tốc độ chạy", 500, 16, function(s) print("Speed set to: " .. s) end)
+    MainSection:NewSlider("FOV", "Chỉnh tầm nhìn", 120, 70, function(s) print("FOV set to: " .. s) end)
+
+    local ProtectSection = MainTab:NewSection("Protection and Visuals")
+    ProtectSection:NewToggle("Anti Fling", "Chống bị hất văng", function(state) print("Anti Fling: " .. tostring(state)) end)
+    ProtectSection:NewToggle("Lock Position", "Khóa vị trí", function(state) print("Lock Position: " .. tostring(state)) end)
+    ProtectSection:NewToggle("Show Pets", "Hiện pet", function(state) print("Show Pets: " .. tostring(state)) end)
+    ProtectSection:NewToggle("Hide Stat Frames", "Ẩn bảng chỉ số", function(state) print("Hide Stat Frames: " .. tostring(state)) end)
+    ProtectSection:NewToggle("Walk on Water", "Đi trên nước", function(state) print("Walk on Water: " .. tostring(state)) end)
+
+    local OtherSection = MainTab:NewSection("Other")
+    OtherSection:NewToggle("Infinite Jump", "Nhảy vô hạn", function(state) print("Infinite Jump: " .. tostring(state)) end)
+    OtherSection:NewToggle("Automatically Spin Fortune Wheel", "Tự động quay vòng quay", function(state) print("Auto Spin: " .. tostring(state)) end)
+
+    local KillSection = KillingTab:NewSection("Target Killing")
+    KillSection:NewDropdown("Add to Killlist", "Thêm vào danh sách", {"Player1", "Player2"}, function(currentOption) print("Added to Killlist: " .. currentOption) end)
+    KillSection:NewToggle("Kill List", "Bật danh sách kill", function(state) print("Kill List: " .. tostring(state)) end)
+    KillSection:NewDropdown("Choose Player", "Chọn người chơi", {"Player1", "Player2"}, function(currentOption) print("Chosen Player: " .. currentOption) end)
+    KillSection:NewToggle("Spectate", "Theo dõi người chơi", function(state) print("Spectate: " .. tostring(state)) end)
+
+    local AuraSection = KillingTab:NewSection("Kill Aura")
+    AuraSection:NewSlider("Range (1-100)", "Chỉnh tầm đánh", 100, 1, function(s) print("Aura Range: " .. s) end)
+    AuraSection:NewToggle("Show Ring", "Hiện vòng tròn", function(state) print("Show Ring: " .. tostring(state)) end)
+    AuraSection:NewToggle("Toggle Ring", "Bật/tắt vòng tròn", function(state) print("Toggle Ring: " .. tostring(state)) end)
+
+    local LendSection = KillingTab:NewSection("Lend Damage")
+    LendSection:NewDropdown("Choose Player", "Chọn người chơi", {"Player1", "Player2"}, function(currentOption) print("Lend Player: " .. currentOption) end)
+    LendSection:NewToggle("Lend Damage", "Cho mượn sát thương", function(state) print("Lend Damage: " .. tostring(state)) end)
+    LendSection:NewLabel("Whitelist: None")
+    LendSection:NewButton("Clear Whitelist", "Xóa whitelist", function() print("Whitelist Cleared") end)
+    LendSection:NewLabel("Killlist: None")
+    LendSection:NewButton("Clear Killlist", "Xóa killlist", function() print("Killlist Cleared") end)
+
+    local SpecsSection = SpecsTab:NewSection("Player Stats")
+    SpecsSection:NewDropdown("Choose Player", "Chọn người chơi", {"Player1", "Player2"}, function(currentOption) print("Specs Player: " .. currentOption) end)
+    SpecsSection:NewLabel("Name: N/A")
+    SpecsSection:NewLabel("Username: N/A")
+    SpecsSection:NewLabel("Strength: N/A")
+    SpecsSection:NewLabel("Rebirths: N/A")
+    SpecsSection:NewLabel("Durability: N/A")
+    SpecsSection:NewLabel("Agility: N/A")
+    SpecsSection:NewLabel("Kills: N/A")
+    SpecsSection:NewLabel("Evil Karma: N/A")
+    SpecsSection:NewLabel("Good Karma: N/A")
+    SpecsSection:NewLabel("Brawls: N/A")
+    
+    local AdvSection = SpecsTab:NewSection("Advanced Stats")
+    AdvSection:NewLabel("Enemy Health: N/A")
+    AdvSection:NewLabel("Enemy Damage: N/A")
+    AdvSection:NewLabel("Your Health: N/A")
+    AdvSection:NewLabel("Your Damage: N/A")
+    AdvSection:NewLabel("Hits to Kill: N/A")
+
+    local RebirthSection = FarmingTab:NewSection("Rebirths")
+    RebirthSection:NewLabel("Rebirths: 0")
+    RebirthSection:NewLabel("Target Rebirths: 0")
+    RebirthSection:NewToggle("Auto Rebirth", "Tự động hồi sinh", function(state) print("Auto Rebirth: " .. tostring(state)) end)
+    RebirthSection:NewToggle("Auto Size 1", "Tự động về size 1", function(state) print("Auto Size 1: " .. tostring(state)) end)
+    RebirthSection:NewToggle("Auto King", "Tự động lên King", function(state) print("Auto King: " .. tostring(state)) end)
+
+    local ExerciseSection = FarmingTab:NewSection("Auto Exercises (recommended for rebirthing)")
+    ExerciseSection:NewDropdown("Select Exercise", "Chọn bài tập", {"Pushup", "Squat", "Jungle Lift"}, function(currentOption) print("Exercise: " .. currentOption) end)
+    ExerciseSection:NewToggle("Start Exercising", "Bắt đầu tập luyện", function(state) print("Start Exercising: " .. tostring(state)) end)
+
+    local GlitchSection = FarmingTab:NewSection("Glitching")
+    GlitchSection:NewDropdown("Select Rock", "Chọn đá", {"Jungle Rock", "Muscle King Rock", "Legends Rock"}, function(currentOption) print("Rock: " .. currentOption) end)
+    GlitchSection:NewToggle("Auto Rock", "Tự động đập đá", function(state) print("Auto Rock: " .. tostring(state)) end)
+    GlitchSection:NewButton("Anti Lag (for everything)", "Bật chống lag", function() print("Anti Lag Activated") end)
+
+    local StrengthSection = FarmingTab:NewSection("Better Strength Farming")
+    StrengthSection:NewToggle("Pushup + Jungle Rock", "Tập Pushup kết hợp đập đá", function(state) print("Pushup + Jungle Rock: " .. tostring(state)) end)
+    StrengthSection:NewToggle("Pushup + Muscle King Rock", "Tập Pushup kết hợp đập đá King", function(state) print("Pushup + Muscle King Rock: " .. tostring(state)) end)
+    StrengthSection:NewToggle("Pushup + Legends Rock", "Tập Pushup kết hợp đập đá Legends", function(state) print("Pushup + Legends Rock: " .. tostring(state)) end)
+
+    local BoostSection = FarmingTab:NewSection("Boost Eater")
+    BoostSection:NewToggle("Eat All Eggs", "Ăn tất cả trứng", function(state) print("Eat All Eggs: " .. tostring(state)) end)
+    BoostSection:NewToggle("Eat all Boosts (expect lag)", "Ăn tất cả boost (có thể lag)", function(state) print("Eat All Boosts: " .. tostring(state)) end)
+
+    local PetSection = FarmingTab:NewSection("Pet Shop")
+    PetSection:NewDropdown("Choose Pet", "Chọn Pet", {"Pet1", "Pet2", "Pet3"}, function(currentOption) print("Chosen Pet: " .. currentOption) end)
+    PetSection:NewToggle("Buy Pet", "Mua Pet", function(state) print("Buy Pet: " .. tostring(state)) end)
+
+    local AuraShopSection = FarmingTab:NewSection("Auras")
+    AuraShopSection:NewDropdown("Select Aura", "Chọn Aura", {"Aura1", "Aura2", "Aura3"}, function(currentOption) print("Chosen Aura: " .. currentOption) end)
+    AuraShopSection:NewToggle("Buy Aura", "Mua Aura", function(state) print("Buy Aura: " .. tostring(state)) end)
+    AuraShopSection:NewLabel("You need Gems and Inventory Space!")
+
+    local EggGifterSection = FarmingTab:NewSection("Egg Gifter")
+    EggGifterSection:NewLabel("Protein Eggs: 0")
+    EggGifterSection:NewDropdown("Choose Player", "Chọn người chơi", {"Player1", "Player2"}, function(currentOption) print("Gift Egg to: " .. currentOption) end)
+    EggGifterSection:NewTextBox("Amount", "Nhập số lượng", function(txt) print("Egg Amount: " .. txt) end)
+    EggGifterSection:NewButton("Start Gifting", "Bắt đầu tặng", function() print("Start Gifting Eggs") end)
+
+    local ShakeGifterSection = FarmingTab:NewSection("Shake Gifter")
+    ShakeGifterSection:NewLabel("Tropical Shakes: 0")
+    ShakeGifterSection:NewDropdown("Choose Player", "Chọn người chơi", {"Player1", "Player2"}, function(currentOption) print("Gift Shake to: " .. currentOption) end)
+    ShakeGifterSection:NewTextBox("Amount", "Nhập số lượng", function(txt) print("Shake Amount: " .. txt) end)
+    ShakeGifterSection:NewButton("Start Gifting", "Bắt đầu tặng", function() print("Start Gifting Shakes") end)
+    ShakeGifterSection:NewLabel("Interferes with Boosts you got gifted. Get on a machine for less Lag!")
+
+    local TPMainSection = TeleportsTab:NewSection("Main")
+    TPMainSection:NewButton("Tiny Island", "Dịch chuyển đến đảo nhỏ", function() print("Teleport to Tiny Island") end)
+    TPMainSection:NewButton("Main Island", "Dịch chuyển đến đảo chính", function() print("Teleport to Main Island") end)
+    TPMainSection:NewButton("Beach", "Dịch chuyển đến bãi biển", function() print("Teleport to Beach") end)
+
+    local TPGymSection = TeleportsTab:NewSection("Gyms")
+    TPGymSection:NewButton("Muscle King Gym", "Dịch chuyển đến Muscle King Gym", function() print("Teleport to Muscle King Gym") end)
+    TPGymSection:NewButton("Jungle Gym", "Dịch chuyển đến Jungle Gym", function() print("Teleport to Jungle Gym") end)
+    TPGymSection:NewButton("Legends Gym", "Dịch chuyển đến Legends Gym", function() print("Teleport to Legends Gym") end)
+    TPGymSection:NewButton("Infernal Gym", "Dịch chuyển đến Infernal Gym", function() print("Teleport to Infernal Gym") end)
+    TPGymSection:NewButton("Mythical Gym", "Dịch chuyển đến Mythical Gym", function() print("Teleport to Mythical Gym") end)
+
+    local ElapsedSection = StatsTab:NewSection("Elapsed Time")
+    ElapsedSection:NewLabel("0d 0h 1m 6s")
+
+    local StatsSection = StatsTab:NewSection("Stats")
+    StatsSection:NewLabel("Strength: 8.1k (8,083) | Gained: 0 (0)")
+    StatsSection:NewLabel("Rebirths: 0 (0) | Gained: 0 (0)")
+    StatsSection:NewLabel("Durability: 58 (58) | Gained: 0 (0)")
+    StatsSection:NewLabel("Kills: 4 (4) | Gained: 0 (0)")
+    StatsSection:NewLabel("Agility: 512 (512) | Gained: 0 (0)")
+    StatsSection:NewLabel("Evil Karma: 4 (4) | Gained: 0 (0)")
+    StatsSection:NewLabel("Good Karma: 0 (0) | Gained: 0 (0)")
+    StatsSection:NewLabel("Brawls: 0 (0) | Gained: 0 (0)")
+
+    Library:Notify("KhoiFarm đã load thành công! (Key: KhoiReal)", 5)
+end
+
+local function CreateKeyUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "KhoiFarmKeyUI"
+    ScreenGui.Parent = CoreGui
+    ScreenGui.ResetOnSpawn = false
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 400, 0, 320)
+    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -160)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    MainFrame.Parent = ScreenGui
+    
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 12)
+    UICorner.Parent = MainFrame
+
+    local UIStroke = Instance.new("UIStroke")
+    UIStroke.Color = Color3.fromRGB(255, 0, 0)
+    UIStroke.Thickness = 2
+    UIStroke.Parent = MainFrame
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0.8, 0, 0.15, 0)
+    Title.Position = UDim2.new(0.1, 0, 0.05, 0)
+    Title.BackgroundColor3 = Color3.fromRGB(30, 0, 0)
+    Title.TextColor3 = Color3.fromRGB(255, 50, 50)
+    Title.Text = "KhoiFarm Loader"
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 24
+    Title.Parent = MainFrame
+    
+    local TitleCorner = Instance.new("UICorner")
+    TitleCorner.CornerRadius = UDim.new(0, 8)
+    TitleCorner.Parent = Title
+
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(0.9, 0, 0.05, 0)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.Text = "X"
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 14
+    CloseBtn.Parent = MainFrame
+    local CloseCorner = Instance.new("UICorner")
+    CloseCorner.CornerRadius = UDim.new(1, 0)
+    CloseCorner.Parent = CloseBtn
+    CloseBtn.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    local KeyBox = Instance.new("TextBox")
+    KeyBox.Size = UDim2.new(0.8, 0, 0.15, 0)
+    KeyBox.Position = UDim2.new(0.1, 0, 0.3, 0)
+    KeyBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeyBox.PlaceholderText = "Enter the Key..."
+    KeyBox.Text = ""
+    KeyBox.Font = Enum.Font.Gotham
+    KeyBox.TextSize = 16
+    KeyBox.Parent = MainFrame
+    local BoxCorner = Instance.new("UICorner")
+    BoxCorner.CornerRadius = UDim.new(0, 8)
+    BoxCorner.Parent = KeyBox
+    local BoxStroke = Instance.new("UIStroke")
+    BoxStroke.Color = Color3.fromRGB(100, 0, 0)
+    BoxStroke.Parent = KeyBox
+
+    local MainBtn = Instance.new("TextButton")
+    MainBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
+    MainBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
+    MainBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    MainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MainBtn.Text = "Main Script"
+    MainBtn.Font = Enum.Font.GothamBold
+    MainBtn.TextSize = 16
+    MainBtn.Parent = MainFrame
+    local MainBtnCorner = Instance.new("UICorner")
+    MainBtnCorner.CornerRadius = UDim.new(0, 8)
+    MainBtnCorner.Parent = MainBtn
+
+    local FarmBtn = Instance.new("TextButton")
+    FarmBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
+    FarmBtn.Position = UDim2.new(0.1, 0, 0.75, 0)
+    FarmBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    FarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    FarmBtn.Text = "Farming Script"
+    FarmBtn.Font = Enum.Font.GothamBold
+    FarmBtn.TextSize = 16
+    FarmBtn.Parent = MainFrame
+    local FarmBtnCorner = Instance.new("UICorner")
+    FarmBtnCorner.CornerRadius = UDim.new(0, 8)
+    FarmBtnCorner.Parent = FarmBtn
+
+    local Footer = Instance.new("TextLabel")
+    Footer.Size = UDim2.new(0.8, 0, 0.05, 0)
+    Footer.Position = UDim2.new(0.1, 0, 0.92, 0)
+    Footer.BackgroundTransparency = 1
+    Footer.TextColor3 = Color3.fromRGB(150, 150, 150)
+    Footer.Text = "Make by AduAnhKhoi"
+    Footer.Font = Enum.Font.Gotham
+    Footer.TextSize = 12
+    Footer.Parent = MainFrame
+
+    local function CheckKey()
+        if KeyBox.Text == KeySystem then
+            ScreenGui:Destroy()
+            loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+            CreateMainUI()
+        else
+            KeyBox.Text = "Sai Key!"
+            KeyBox.TextColor3 = Color3.fromRGB(255, 0, 0)
+            wait(1)
+            KeyBox.Text = ""
+            KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end
+    end
+
+    MainBtn.MouseButton1Click:Connect(CheckKey)
+    FarmBtn.MouseButton1Click:Connect(CheckKey)
+end
+
+CreateKeyUI()
