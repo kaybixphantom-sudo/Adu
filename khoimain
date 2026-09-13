@@ -1,0 +1,850 @@
+local KeySystem = "KhoiReal"
+
+local CoreGui = (gethui and gethui()) or game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+for _, name in ipairs({"KhoiFarmKeyUI", "KhoiFarmMainUI"}) do
+    local old = CoreGui:FindFirstChild(name)
+    if old then old:Destroy() end
+end
+
+local function GetMuscleEvent()
+    local direct = LocalPlayer:FindFirstChild("MuscleEvent")
+    if direct then return direct end
+    local char = LocalPlayer.Character
+    if char then
+        local cEvent = char:FindFirstChild("MuscleEvent")
+        if cEvent then return cEvent end
+    end
+    local rEvents = ReplicatedStorage:FindFirstChild("rEvents")
+    if rEvents then
+        local rEvent = rEvents:FindFirstChild("muscleEvent") or rEvents:FindFirstChild("MuscleEvent")
+        if rEvent then return rEvent end
+    end
+    return nil
+end
+
+local function GetRebirthRemote()
+    local rEvents = ReplicatedStorage:FindFirstChild("rEvents")
+    return rEvents and rEvents:FindFirstChild("rebirthRemote")
+end
+
+local function EquipPunchTool()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local tool = char:FindFirstChild("Punch")
+    if not tool then
+        local bp = LocalPlayer:FindFirstChild("Backpack")
+        if bp then
+            local bpTool = bp:FindFirstChild("Punch")
+            if bpTool then bpTool.Parent = char end
+        end
+    end
+end
+
+local function FireMuscleEvent(...)
+    local muscleEvent = GetMuscleEvent()
+    if muscleEvent then
+        pcall(function() muscleEvent:FireServer(...) end)
+        return true
+    end
+    return false
+end
+
+local function FireRebirth()
+    local rebirthRemote = GetRebirthRemote()
+    if rebirthRemote then
+        pcall(function() rebirthRemote:InvokeServer("rebirthRequest") end)
+        return true
+    end
+    return false
+end
+
+local function GetChar() return LocalPlayer.Character end
+local function GetHum() local c = GetChar() return c and c:FindFirstChildOfClass("Humanoid") end
+local function GetHRP() local c = GetChar() return c and c:FindFirstChild("HumanoidRootPart") end
+
+local Library = {}
+
+function Library:NewWindow(title)
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "KhoiFarmMainUI"
+    ScreenGui.Parent = CoreGui
+    ScreenGui.ResetOnSpawn = false
+    pcall(function() ScreenGui.IgnoreGuiInset = true end)
+
+    local Main = Instance.new("Frame")
+    Main.Size = UDim2.new(0, 620, 0, 420)
+    Main.Position = UDim2.new(0.5, -310, 0.5, -210)
+    Main.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    Main.BorderSizePixel = 0
+    Main.Active = true
+    Main.Draggable = true
+    Main.Parent = ScreenGui
+
+    local MainC = Instance.new("UICorner")
+    MainC.CornerRadius = UDim.new(0, 10)
+    MainC.Parent = Main
+
+    local MainS = Instance.new("UIStroke")
+    MainS.Color = Color3.fromRGB(255, 0, 0)
+    MainS.Thickness = 2
+    MainS.Parent = Main
+
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Size = UDim2.new(1, 0, 0, 40)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(30, 0, 0)
+    TitleBar.BorderSizePixel = 0
+    TitleBar.Parent = Main
+
+    local TBC = Instance.new("UICorner")
+    TBC.CornerRadius = UDim.new(0, 10)
+    TBC.Parent = TitleBar
+
+    local TitleLbl = Instance.new("TextLabel")
+    TitleLbl.Size = UDim2.new(1, -90, 1, 0)
+    TitleLbl.Position = UDim2.new(0, 15, 0, 0)
+    TitleLbl.BackgroundTransparency = 1
+    TitleLbl.Text = title
+    TitleLbl.TextColor3 = Color3.fromRGB(255, 50, 50)
+    TitleLbl.Font = Enum.Font.GothamBold
+    TitleLbl.TextSize = 18
+    TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLbl.Parent = TitleBar
+
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(1, -40, 0, 5)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.Text = "X"
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 14
+    CloseBtn.BorderSizePixel = 0
+    CloseBtn.Parent = TitleBar
+
+    local CBC = Instance.new("UICorner")
+    CBC.CornerRadius = UDim.new(0, 6)
+    CBC.Parent = CloseBtn
+
+    local MinBtn = Instance.new("TextButton")
+    MinBtn.Size = UDim2.new(0, 30, 0, 30)
+    MinBtn.Position = UDim2.new(1, -75, 0, 5)
+    MinBtn.BackgroundColor3 = Color3.fromRGB(60, 0, 0)
+    MinBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MinBtn.Text = "-"
+    MinBtn.Font = Enum.Font.GothamBold
+    MinBtn.TextSize = 20
+    MinBtn.BorderSizePixel = 0
+    MinBtn.Parent = TitleBar
+
+    local MBC = Instance.new("UICorner")
+    MBC.CornerRadius = UDim.new(0, 6)
+    MBC.Parent = MinBtn
+
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Size = UDim2.new(0, 130, 1, -50)
+    Sidebar.Position = UDim2.new(0, 5, 0, 45)
+    Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Sidebar.BorderSizePixel = 0
+    Sidebar.Parent = Main
+
+    local SBC = Instance.new("UICorner")
+    SBC.CornerRadius = UDim.new(0, 6)
+    SBC.Parent = Sidebar
+
+    local Content = Instance.new("Frame")
+    Content.Size = UDim2.new(1, -145, 1, -50)
+    Content.Position = UDim2.new(0, 140, 0, 45)
+    Content.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Content.BorderSizePixel = 0
+    Content.Parent = Main
+
+    local CC = Instance.new("UICorner")
+    CC.CornerRadius = UDim.new(0, 6)
+    CC.Parent = Content
+
+    local MiniFrame = Instance.new("Frame")
+    MiniFrame.Name = "KhoiFarmMiniFrame"
+    MiniFrame.Size = UDim2.new(0, 115, 0, 45)
+    MiniFrame.Position = UDim2.new(0, 15, 0, 15)
+    MiniFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    MiniFrame.BorderSizePixel = 0
+    MiniFrame.Visible = false
+    MiniFrame.Active = true
+    MiniFrame.Draggable = true
+    MiniFrame.Parent = ScreenGui
+
+    local MiniC = Instance.new("UICorner")
+    MiniC.CornerRadius = UDim.new(0, 10)
+    MiniC.Parent = MiniFrame
+
+    local MiniS = Instance.new("UIStroke")
+    MiniS.Color = Color3.fromRGB(255, 0, 0)
+    MiniS.Thickness = 2
+    MiniS.Parent = MiniFrame
+
+    local MiniLbl = Instance.new("TextLabel")
+    MiniLbl.Size = UDim2.new(0.6, 0, 1, 0)
+    MiniLbl.Position = UDim2.new(0.05, 0, 0, 0)
+    MiniLbl.BackgroundTransparency = 1
+    MiniLbl.Text = "Khoi"
+    MiniLbl.TextColor3 = Color3.fromRGB(255, 50, 50)
+    MiniLbl.Font = Enum.Font.GothamBold
+    MiniLbl.TextSize = 20
+    MiniLbl.TextXAlignment = Enum.TextXAlignment.Left
+    MiniLbl.Parent = MiniFrame
+
+    local PlusBtn = Instance.new("TextButton")
+    PlusBtn.Size = UDim2.new(0.28, 0, 0.6, 0)
+    PlusBtn.Position = UDim2.new(0.68, 0, 0.2, 0)
+    PlusBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+    PlusBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PlusBtn.Text = "+"
+    PlusBtn.Font = Enum.Font.GothamBold
+    PlusBtn.TextSize = 20
+    PlusBtn.BorderSizePixel = 0
+    PlusBtn.Parent = MiniFrame
+
+    MinBtn.MouseButton1Click:Connect(function()
+        Main.Visible = false
+        MiniFrame.Visible = true
+    end)
+
+    PlusBtn.MouseButton1Click:Connect(function()
+        Main.Visible = true
+        MiniFrame.Visible = false
+    end)
+
+    CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+    local WindowObj = { Frame = Main, Content = Content, Sidebar = Sidebar, ScreenGui = ScreenGui, Tabs = {}, TabOrder = 0 }
+
+    function WindowObj:NewTab(name)
+        self.TabOrder = self.TabOrder + 1
+        local order = self.TabOrder
+        local TabBtn = Instance.new("TextButton")
+        TabBtn.Size = UDim2.new(1, -10, 0, 35)
+        TabBtn.Position = UDim2.new(0, 5, 0, 5 + (order - 1) * 40)
+        TabBtn.BackgroundColor3 = Color3.fromRGB(35, 0, 0)
+        TabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        TabBtn.Text = name
+        TabBtn.Font = Enum.Font.Gotham
+        TabBtn.TextSize = 14
+        TabBtn.BorderSizePixel = 0
+        TabBtn.Parent = Sidebar
+
+        local TBC2 = Instance.new("UICorner")
+        TBC2.CornerRadius = UDim.new(0, 6)
+        TBC2.Parent = TabBtn
+
+        local TabPage = Instance.new("ScrollingFrame")
+        TabPage.Size = UDim2.new(1, 0, 1, 0)
+        TabPage.BackgroundTransparency = 1
+        TabPage.BorderSizePixel = 0
+        TabPage.ScrollBarThickness = 4
+        TabPage.ScrollBarImageColor3 = Color3.fromRGB(255, 0, 0)
+        TabPage.CanvasSize = UDim2.new(0, 0, 0, 0)
+        pcall(function() TabPage.AutomaticCanvasSize = Enum.AutomaticSize.Y end)
+        TabPage.Visible = false
+        TabPage.Parent = Content
+
+        local PageLayout = Instance.new("UIListLayout")
+        PageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        PageLayout.Padding = UDim.new(0, 6)
+        PageLayout.Parent = TabPage
+
+        local PagePad = Instance.new("UIPadding")
+        PagePad.PaddingTop = UDim.new(0, 8)
+        PagePad.PaddingBottom = UDim.new(0, 8)
+        PagePad.PaddingLeft = UDim.new(0, 8)
+        PagePad.PaddingRight = UDim.new(0, 8)
+        PagePad.Parent = TabPage
+
+        local TabObj = { Button = TabBtn, Page = TabPage, SectionOrder = 0 }
+
+        local function SelectTab()
+            for _, t in pairs(WindowObj.Tabs) do
+                t.Page.Visible = false
+                t.Button.BackgroundColor3 = Color3.fromRGB(35, 0, 0)
+            end
+            TabPage.Visible = true
+            TabBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+            TitleLbl.Text = "KhoiFarm | " .. name
+        end
+
+        TabBtn.MouseButton1Click:Connect(SelectTab)
+        table.insert(self.Tabs, TabObj)
+        if #self.Tabs == 1 then SelectTab() end
+
+        function TabObj:NewSection(name)
+            self.SectionOrder = self.SectionOrder + 1
+            local mySectionOrder = self.SectionOrder
+            local SectionFrame = Instance.new("Frame")
+            SectionFrame.Size = UDim2.new(1, 0, 0, 26)
+            SectionFrame.BackgroundTransparency = 1
+            SectionFrame.LayoutOrder = mySectionOrder * 1000
+            SectionFrame.Parent = TabPage
+
+            local SectionLabel = Instance.new("TextLabel")
+            SectionLabel.Size = UDim2.new(1, 0, 1, 0)
+            SectionLabel.BackgroundTransparency = 1
+            SectionLabel.Text = "› " .. name
+            SectionLabel.TextColor3 = Color3.fromRGB(255, 50, 50)
+            SectionLabel.Font = Enum.Font.GothamBold
+            SectionLabel.TextSize = 15
+            SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
+            SectionLabel.Parent = SectionFrame
+
+            local SectionObj = { ItemOrder = 0 }
+
+            local function CreateContainer(height)
+                SectionObj.ItemOrder = SectionObj.ItemOrder + 1
+                local container = Instance.new("Frame")
+                container.Size = UDim2.new(1, 0, 0, height)
+                container.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+                container.BorderSizePixel = 0
+                container.LayoutOrder = mySectionOrder * 1000 + SectionObj.ItemOrder
+                container.Parent = TabPage
+
+                local c = Instance.new("UICorner")
+                c.CornerRadius = UDim.new(0, 6)
+                c.Parent = container
+
+                local s = Instance.new("UIStroke")
+                s.Color = Color3.fromRGB(60, 0, 0)
+                s.Thickness = 1
+                s.Parent = container
+                return container
+            end
+
+            function SectionObj:NewToggle(title, desc, callback)
+                local container = CreateContainer(40)
+                local titleLabel = Instance.new("TextLabel")
+                titleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+                titleLabel.Position = UDim2.new(0, 12, 0, 0)
+                titleLabel.BackgroundTransparency = 1
+                titleLabel.Text = title
+                titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                titleLabel.Font = Enum.Font.Gotham
+                titleLabel.TextSize = 14
+                titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                titleLabel.Parent = container
+
+                local toggleBtn = Instance.new("TextButton")
+                toggleBtn.Size = UDim2.new(0, 45, 0, 22)
+                toggleBtn.Position = UDim2.new(1, -57, 0.5, -11)
+                toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                toggleBtn.Text = ""
+                toggleBtn.BorderSizePixel = 0
+                toggleBtn.Parent = container
+
+                local tC = Instance.new("UICorner")
+                tC.CornerRadius = UDim.new(1, 0)
+                tC.Parent = toggleBtn
+
+                local knob = Instance.new("Frame")
+                knob.Size = UDim2.new(0, 18, 0, 18)
+                knob.Position = UDim2.new(0, 2, 0.5, -9)
+                knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                knob.BorderSizePixel = 0
+                knob.Parent = toggleBtn
+
+                local kC = Instance.new("UICorner")
+                kC.CornerRadius = UDim.new(1, 0)
+                kC.Parent = knob
+
+                local state = false
+                toggleBtn.MouseButton1Click:Connect(function()
+                    state = not state
+                    if state then
+                        toggleBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+                        TweenService:Create(knob, TweenInfo.new(0.15), {Position = UDim2.new(1, -20, 0.5, -9)}):Play()
+                    else
+                        toggleBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                        TweenService:Create(knob, TweenInfo.new(0.15), {Position = UDim2.new(0, 2, 0.5, -9)}):Play()
+                    end
+                    if callback then callback(state) end
+                end)
+            end
+
+            function SectionObj:NewButton(title, desc, callback)
+                local container = CreateContainer(40)
+                local btn = Instance.new("TextButton")
+                btn.Size = UDim2.new(1, 0, 1, 0)
+                btn.BackgroundColor3 = Color3.fromRGB(40, 0, 0)
+                btn.Text = title
+                btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                btn.Font = Enum.Font.Gotham
+                btn.TextSize = 14
+                btn.BorderSizePixel = 0
+                btn.Parent = container
+
+                local bC = Instance.new("UICorner")
+                bC.CornerRadius = UDim.new(0, 6)
+                bC.Parent = btn
+
+                btn.MouseButton1Click:Connect(function()
+                    if callback then callback() end
+                end)
+            end
+
+            function SectionObj:NewLabel(text)
+                local container = CreateContainer(26)
+                local lbl = Instance.new("TextLabel")
+                lbl.Size = UDim2.new(1, -24, 1, 0)
+                lbl.Position = UDim2.new(0, 12, 0, 0)
+                lbl.BackgroundTransparency = 1
+                lbl.Text = text
+                lbl.TextColor3 = Color3.fromRGB(220, 220, 220)
+                lbl.Font = Enum.Font.Gotham
+                lbl.TextSize = 13
+                lbl.TextXAlignment = Enum.TextXAlignment.Left
+                lbl.Parent = container
+                return lbl
+            end
+
+            function SectionObj:NewSlider(title, desc, max, min, callback)
+                local container = CreateContainer(52)
+                local titleLabel = Instance.new("TextLabel")
+                titleLabel.Size = UDim2.new(1, -24, 0, 20)
+                titleLabel.Position = UDim2.new(0, 12, 0, 4)
+                titleLabel.BackgroundTransparency = 1
+                titleLabel.Text = title .. ": " .. min
+                titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                titleLabel.Font = Enum.Font.Gotham
+                titleLabel.TextSize = 13
+                titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+                titleLabel.Parent = container
+
+                local track = Instance.new("Frame")
+                track.Size = UDim2.new(1, -24, 0, 8)
+                track.Position = UDim2.new(0, 12, 0, 34)
+                track.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+                track.BorderSizePixel = 0
+                track.Parent = container
+
+                local fill = Instance.new("Frame")
+                fill.Size = UDim2.new(0, 0, 1, 0)
+                fill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+                fill.BorderSizePixel = 0
+                fill.Parent = track
+
+                local dragging = false
+                local function updateFromX(x)
+                    local relX = math.clamp((x - track.AbsolutePosition.X) / track.AbsoluteSize.X, 0, 1)
+                    local value = math.floor(min + (max - min) * relX)
+                    fill.Size = UDim2.new(relX, 0, 1, 0)
+                    titleLabel.Text = title .. ": " .. value
+                    if callback then callback(value) end
+                end
+
+                track.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = true
+                        updateFromX(input.Position.X)
+                    end
+                end)
+                track.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        dragging = false
+                    end
+                end)
+                UserInputService.InputChanged:Connect(function(input)
+                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                        updateFromX(input.Position.X)
+                    end
+                end)
+            end
+
+            return SectionObj
+        end
+
+        return TabObj
+    end
+
+    function WindowObj:Notify(text, duration)
+        local notif = Instance.new("Frame")
+        notif.Size = UDim2.new(0, 260, 0, 50)
+        notif.Position = UDim2.new(1, -280, 1, -70)
+        notif.BackgroundColor3 = Color3.fromRGB(30, 0, 0)
+        notif.BorderSizePixel = 0
+        notif.Parent = ScreenGui
+
+        local nc = Instance.new("UICorner")
+        nc.CornerRadius = UDim.new(0, 8)
+        nc.Parent = notif
+
+        local ns = Instance.new("UIStroke")
+        ns.Color = Color3.fromRGB(255, 0, 0)
+        ns.Thickness = 2
+        ns.Parent = notif
+
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.new(1, -20, 1, 0)
+        lbl.Position = UDim2.new(0, 10, 0, 0)
+        lbl.BackgroundTransparency = 1
+        lbl.Text = text
+        lbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+        lbl.Font = Enum.Font.Gotham
+        lbl.TextSize = 13
+        lbl.TextWrapped = true
+        lbl.Parent = notif
+
+        task.spawn(function()
+            task.wait(duration or 3)
+            TweenService:Create(notif, TweenInfo.new(0.3), {BackgroundTransparency = 1}):Play()
+            TweenService:Create(lbl, TweenInfo.new(0.3), {TextTransparency = 1}):Play()
+            task.wait(0.3)
+            notif:Destroy()
+        end)
+    end
+
+    return WindowObj
+end
+
+local function CreateMainUI()
+    local Window = Library:NewWindow("KhoiFarm | Main")
+
+    local States = {
+        AutoPunch = false,
+        KillList = false,
+        KillAura = false,
+        KillRange = 25,
+        AutoRebirth = false,
+        AutoSize1 = false
+    }
+
+    local MainTab = Window:NewTab("Main")
+    local MainSec = MainTab:NewSection("User Settings")
+
+    MainSec:NewSlider("Size", "Kích thước nhân vật", 500, 1, function(v)
+        local char = GetChar()
+        if char then
+            pcall(function() char:ScaleTo(v / 10) end)
+        end
+    end)
+
+    MainSec:NewSlider("Speed", "Tốc độ chạy", 500, 16, function(v)
+        local hum = GetHum()
+        if hum then hum.WalkSpeed = v end
+    end)
+
+    MainSec:NewSlider("FOV", "Tầm nhìn Camera", 120, 70, function(v)
+        workspace.CurrentCamera.FieldOfView = v
+    end)
+
+    local ProtSec = MainTab:NewSection("Protection and Visuals")
+    local antiFlingConn
+    ProtSec:NewToggle("Anti Fling", "Chống bị hất văng", function(s)
+        if s then
+            antiFlingConn = RunService.Heartbeat:Connect(function()
+                local hrp = GetHRP()
+                if hrp then
+                    hrp.CustomPhysicalProperties = PhysicalProperties.new(0.01, 0.01, 0.01, 0, 0)
+                end
+            end)
+        else
+            if antiFlingConn then antiFlingConn:Disconnect() end
+            local hrp = GetHRP()
+            if hrp then hrp.CustomPhysicalProperties = nil end
+        end
+    end)
+
+    ProtSec:NewToggle("Lock Position", "Khóa vị trí nhân vật", function(s)
+        local hrp = GetHRP()
+        if hrp then hrp.Anchored = s end
+    end)
+
+    local walkWaterConn
+    ProtSec:NewToggle("Walk on Water", "Đi trên nước", function(s)
+        if s then
+            walkWaterConn = RunService.Heartbeat:Connect(function()
+                local hrp = GetHRP()
+                if hrp and hrp.Position.Y < 1.5 then
+                    hrp.Velocity = Vector3.new(hrp.Velocity.X, 30, hrp.Velocity.Z)
+                end
+            end)
+        else
+            if walkWaterConn then walkWaterConn:Disconnect() end
+        end
+    end)
+
+    local OtherSec = MainTab:NewSection("Other")
+    local infJump = false
+    OtherSec:NewToggle("Infinite Jump", "Nhảy vô hạn", function(s) infJump = s end)
+    UserInputService.JumpRequest:Connect(function()
+        if infJump then
+            local hum = GetHum()
+            if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+        end
+    end)
+
+    local KillTab = Window:NewTab("Killing")
+    local TargetSec = KillTab:NewSection("Target Killing")
+    TargetSec:NewToggle("Kill List", "Bật kill list", function(s) States.KillList = s end)
+
+    local AuraSec = KillTab:NewSection("Kill Aura")
+    AuraSec:NewSlider("Range", "", 100, 1, function(v) States.KillRange = v end)
+    AuraSec:NewToggle("Toggle Ring", "Bật kill aura", function(s) States.KillAura = s end)
+
+    local SpecsTab = Window:NewTab("Specs")
+    local SpecsSec = SpecsTab:NewSection("Player Stats")
+    local nameLbl = SpecsSec:NewLabel("Name: N/A")
+    local userLbl = SpecsSec:NewLabel("Username: N/A")
+    local strLbl = SpecsSec:NewLabel("Strength: N/A")
+    local rebLbl = SpecsSec:NewLabel("Rebirths: N/A")
+    local durLbl = SpecsSec:NewLabel("Durability: N/A")
+
+    task.spawn(function()
+        while task.wait(1) do
+            local stats = LocalPlayer:FindFirstChild("leaderstats")
+            if stats then
+                local function getStat(n)
+                    local s = stats:FindFirstChild(n)
+                    return s and s.Value or "N/A"
+                end
+                nameLbl.Text = "Name: " .. LocalPlayer.DisplayName
+                userLbl.Text = "Username: " .. LocalPlayer.Name
+                strLbl.Text = "Strength: " .. tostring(getStat("Strength"))
+                rebLbl.Text = "Rebirths: " .. tostring(getStat("Rebirths"))
+                durLbl.Text = "Durability: " .. tostring(getStat("Durability"))
+            end
+        end
+    end)
+
+    local FarmTab = Window:NewTab("Farming")
+    local RebSec = FarmTab:NewSection("Rebirths")
+    RebSec:NewToggle("Auto Rebirth", "Tự động hồi sinh", function(s) States.AutoRebirth = s end)
+    RebSec:NewToggle("Auto Size 1", "Tự thu nhỏ nhân vật", function(s) States.AutoSize1 = s end)
+
+    local ExSec = FarmTab:NewSection("Auto Exercises")
+    ExSec:NewToggle("Start Exercising", "Bắt đầu tập (Đấm)", function(s) States.AutoPunch = s end)
+
+    local GlSec = FarmTab:NewSection("Glitching & Rock Farm")
+    GlSec:NewToggle("Auto Rock", "Tự đánh đá", function(s) States.AutoPunch = s end)
+    GlSec:NewButton("Anti Lag", "Tắt hiệu ứng", function()
+        for _, v in pairs(game:GetDescendants()) do
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") then
+                pcall(function() v.Enabled = false end)
+            end
+        end
+    end)
+
+    local StrSec = FarmTab:NewSection("Combo Muscle Farm")
+    StrSec:NewToggle("Pushup + Rock Farm", "Tập + đập đá", function(s) States.AutoPunch = s end)
+
+    local TpTab = Window:NewTab("Teleports")
+    local TpMainSec = TpTab:NewSection("Main Islands")
+    local function TpTo(cf)
+        local hrp = GetHRP()
+        if hrp then hrp.CFrame = cf end
+    end
+
+    TpMainSec:NewButton("Main Island", "Đảo chính", function() TpTo(CFrame.new(0, 8, 0)) end)
+    TpMainSec:NewButton("Tiny Island", "Đảo nhỏ", function() TpTo(CFrame.new(-38, 8, 1860)) end)
+    TpMainSec:NewButton("Beach", "Bãi biển", function() TpTo(CFrame.new(-2560, 8, -260)) end)
+
+    local TpGymSec = TpTab:NewSection("Gyms")
+    TpGymSec:NewButton("Frost Gym", "Đảo Băng", function() TpTo(CFrame.new(-2600, 8, -5000)) end)
+    TpGymSec:NewButton("Mythical Gym", "", function() TpTo(CFrame.new(2250, 8, 1070)) end)
+    TpGymSec:NewButton("Infernal Gym", "", function() TpTo(CFrame.new(-6700, 8, -1280)) end)
+    TpGymSec:NewButton("Legends Gym", "", function() TpTo(CFrame.new(4600, 8, -3800)) end)
+    TpGymSec:NewButton("Muscle King Gym", "", function() TpTo(CFrame.new(-8600, 8, -5700)) end)
+
+    local StatsTab = Window:NewTab("Stats")
+    local ElSec = StatsTab:NewSection("Elapsed Time")
+    local timeLbl = ElSec:NewLabel("0d 0h 0m 0s")
+    local startTime = tick()
+
+    task.spawn(function()
+        while task.wait(1) do
+            local elapsed = tick() - startTime
+            local d = math.floor(elapsed / 86400)
+            local h = math.floor((elapsed % 86400) / 3600)
+            local m = math.floor((elapsed % 3600) / 60)
+            local s = math.floor(elapsed % 60)
+            timeLbl.Text = string.format("%dd %dh %dm %ds", d, h, m, s)
+        end
+    end)
+
+    task.spawn(function()
+        while task.wait(0.12) do
+            if States.AutoPunch then
+                EquipPunchTool()
+                FireMuscleEvent("punch", "leftHand")
+                FireMuscleEvent("punch", "rightHand")
+            end
+
+            if States.KillList or States.KillAura then
+                local myHrp = GetHRP()
+                if myHrp then
+                    for _, plr in pairs(Players:GetPlayers()) do
+                        if plr ~= LocalPlayer and plr.Character then
+                            local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+                            local targetHrp = plr.Character:FindFirstChild("HumanoidRootPart")
+
+                            if hum and hum.Health > 0 and targetHrp then
+                                local dist = (myHrp.Position - targetHrp.Position).Magnitude
+                                if (States.KillList and dist < 20) or (States.KillAura and dist < States.KillRange) then
+                                    EquipPunchTool()
+                                    FireMuscleEvent("punch", "leftHand")
+                                    FireMuscleEvent("punch", "rightHand")
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end)
+
+    task.spawn(function()
+        while task.wait(1) do
+            if States.AutoRebirth then
+                FireRebirth()
+            end
+            if States.AutoSize1 then
+                local char = GetChar()
+                if char then pcall(function() char:ScaleTo(0.1) end) end
+            end
+        end
+    end)
+
+    Window:Notify("KhoiFarm đã tối ưu & sửa lỗi hoàn tất!", 5)
+end
+
+local function CreateKeyUI()
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "KhoiFarmKeyUI"
+    ScreenGui.Parent = CoreGui
+    ScreenGui.ResetOnSpawn = false
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 400, 0, 320)
+    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -160)
+    MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
+    MainFrame.Draggable = true
+    MainFrame.Parent = ScreenGui
+
+    local MC = Instance.new("UICorner")
+    MC.CornerRadius = UDim.new(0, 12)
+    MC.Parent = MainFrame
+
+    local MS = Instance.new("UIStroke")
+    MS.Color = Color3.fromRGB(255, 0, 0)
+    MS.Thickness = 2
+    MS.Parent = MainFrame
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0.8, 0, 0.15, 0)
+    Title.Position = UDim2.new(0.1, 0, 0.05, 0)
+    Title.BackgroundColor3 = Color3.fromRGB(30, 0, 0)
+    Title.TextColor3 = Color3.fromRGB(255, 50, 50)
+    Title.Text = "KhoiFarm Loader"
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 24
+    Title.Parent = MainFrame
+
+    local TC = Instance.new("UICorner")
+    TC.CornerRadius = UDim.new(0, 8)
+    TC.Parent = Title
+
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+    CloseBtn.Position = UDim2.new(0.9, 0, 0.05, 0)
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.Text = "X"
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 14
+    CloseBtn.Parent = MainFrame
+
+    local CC = Instance.new("UICorner")
+    CC.CornerRadius = UDim.new(1, 0)
+    CC.Parent = CloseBtn
+    CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+    local KeyBox = Instance.new("TextBox")
+    KeyBox.Size = UDim2.new(0.8, 0, 0.15, 0)
+    KeyBox.Position = UDim2.new(0.1, 0, 0.3, 0)
+    KeyBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeyBox.PlaceholderText = "Nhập Key vào đây..."
+    KeyBox.Text = ""
+    KeyBox.Font = Enum.Font.Gotham
+    KeyBox.TextSize = 16
+    KeyBox.Parent = MainFrame
+
+    local BC = Instance.new("UICorner")
+    BC.CornerRadius = UDim.new(0, 8)
+    BC.Parent = KeyBox
+
+    local BS = Instance.new("UIStroke")
+    BS.Color = Color3.fromRGB(100, 0, 0)
+    BS.Parent = KeyBox
+
+    local MainBtn = Instance.new("TextButton")
+    MainBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
+    MainBtn.Position = UDim2.new(0.1, 0, 0.55, 0)
+    MainBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+    MainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    MainBtn.Text = "Main Script"
+    MainBtn.Font = Enum.Font.GothamBold
+    MainBtn.TextSize = 16
+    MainBtn.Parent = MainFrame
+
+    local MBC = Instance.new("UICorner")
+    MBC.CornerRadius = UDim.new(0, 8)
+    MBC.Parent = MainBtn
+
+    local FarmBtn = Instance.new("TextButton")
+    FarmBtn.Size = UDim2.new(0.8, 0, 0.15, 0)
+    FarmBtn.Position = UDim2.new(0.1, 0, 0.75, 0)
+    FarmBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+    FarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    FarmBtn.Text = "Farming Script"
+    FarmBtn.Font = Enum.Font.GothamBold
+    FarmBtn.TextSize = 16
+    FarmBtn.Parent = MainFrame
+
+    local FBC = Instance.new("UICorner")
+    FBC.CornerRadius = UDim.new(0, 8)
+    FBC.Parent = FarmBtn
+
+    local Footer = Instance.new("TextLabel")
+    Footer.Size = UDim2.new(0.8, 0, 0.05, 0)
+    Footer.Position = UDim2.new(0.1, 0, 0.92, 0)
+    Footer.BackgroundTransparency = 1
+    Footer.TextColor3 = Color3.fromRGB(150, 150, 150)
+    Footer.Text = "Make by AduAnhKhoi"
+    Footer.Font = Enum.Font.Gotham
+    Footer.TextSize = 12
+    Footer.Parent = MainFrame
+
+    local function CheckKey()
+        if KeyBox.Text == KeySystem then
+            ScreenGui:Destroy()
+            local ok, err = pcall(CreateMainUI)
+            if not ok then warn("[KhoiFarm] Lỗi: " .. tostring(err)) end
+        else
+            KeyBox.Text = "Sai Key!"
+            KeyBox.TextColor3 = Color3.fromRGB(255, 0, 0)
+            task.wait(1)
+            KeyBox.Text = ""
+            KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        end
+    end
+
+    MainBtn.MouseButton1Click:Connect(CheckKey)
+    FarmBtn.MouseButton1Click:Connect(CheckKey)
+end
+
+CreateKeyUI()
